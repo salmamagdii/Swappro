@@ -245,6 +245,13 @@
 
           const data = await res.json();
           console.log('Received response:', data);
+          
+          if (!res.ok) {
+            console.error('Server responded with error:', res.status, data);
+            alert(`Error: ${data.message || 'Failed to sign in'}`);
+            return;
+          }
+
           if (data.message === 'Login successful') {
             // Store the token if needed
             if (data.token) {
@@ -256,7 +263,11 @@
           }
         } catch (error) {
           console.error('Error during signin:', error);
-          alert('Error during signin. Please try again.');
+          console.error('Error details:', {
+            message: error.message,
+            stack: error.stack
+          });
+          alert('Error during signin. Please check console for details.');
         }
       });
     </script>
