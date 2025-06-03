@@ -241,12 +241,15 @@
           const res = await fetch('https://swappro-backend.onrender.com/signin', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
             },
+            mode: 'cors',
             credentials: 'include',
             body: JSON.stringify(formData)
           });
 
+          console.log('Response status:', res.status);
           const data = await res.json();
           console.log('Response data:', data);
           
@@ -274,9 +277,16 @@
         } catch (error) {
           console.error('Error during signin:', {
             name: error.name,
-            message: error.message
+            message: error.message,
+            stack: error.stack
           });
-          alert('Error during signin. Please check console for details.');
+          
+          if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+            console.error('CORS or Network error detected');
+            alert('Connection error: Please make sure the backend server is running and CORS is properly configured.');
+          } else {
+            alert('Error during signin. Please check console for details.');
+          }
         }
       });
     </script>
