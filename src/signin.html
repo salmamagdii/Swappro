@@ -236,20 +236,27 @@
         };
         
         console.log('Starting signin process...');
+        console.log('Form data:', formData);
         
         try {
+          // First, test if we can reach the backend
+          console.log('Testing backend connection...');
+          const testResponse = await fetch('https://swappro-backend.onrender.com');
+          console.log('Backend test response:', testResponse.status);
+          
+          // Now try the actual signin
+          console.log('Attempting signin...');
           const res = await fetch('https://swappro-backend.onrender.com/signin', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
+              'Content-Type': 'application/json'
             },
-            mode: 'cors',
-            credentials: 'include',
             body: JSON.stringify(formData)
           });
 
-          console.log('Response status:', res.status);
+          console.log('Signin response status:', res.status);
+          console.log('Response headers:', Object.fromEntries(res.headers.entries()));
+          
           const data = await res.json();
           console.log('Response data:', data);
           
@@ -275,16 +282,22 @@
             alert(data.message || 'Login failed. Please try again.');
           }
         } catch (error) {
-          console.error('Error during signin:', {
+          console.error('Detailed error information:', {
             name: error.name,
             message: error.message,
-            stack: error.stack
+            stack: error.stack,
+            type: error.constructor.name
           });
           
+          // Check specific error types
           if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-            console.error('CORS or Network error detected');
-            alert('Connection error: Please make sure the backend server is running and CORS is properly configured.');
+            console.error('Network error detected');
+            alert('Network error: Cannot connect to the server. Please check if the backend is running.');
+          } else if (error.name === 'SyntaxError') {
+            console.error('JSON parsing error');
+            alert('Error: Invalid response from server');
           } else {
+            console.error('Unknown error type');
             alert('Error during signin. Please check console for details.');
           }
         }
