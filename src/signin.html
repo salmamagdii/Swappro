@@ -236,70 +236,46 @@
         };
         
         console.log('Starting signin process...');
-        console.log('Form data:', formData);
         
         try {
-          // First, test if we can reach the backend
-          console.log('Testing backend connection...');
-          const testResponse = await fetch('https://swappro-backend.onrender.com');
-          console.log('Backend test response:', testResponse.status);
-          
-          // Now try the actual signin
-          console.log('Attempting signin...');
           const res = await fetch('https://swappro-backend.onrender.com/signin', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Origin': 'https://swappro-lilac.vercel.app'
             },
+            mode: 'cors',
+            credentials: 'include',
             body: JSON.stringify(formData)
           });
 
-          console.log('Signin response status:', res.status);
-          console.log('Response headers:', Object.fromEntries(res.headers.entries()));
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
           
           const data = await res.json();
           console.log('Response data:', data);
           
-          if (!res.ok) {
-            console.error('Server responded with error:', {
-              status: res.status,
-              statusText: res.statusText,
-              data: data
-            });
-            alert(`Error: ${data.message || 'Failed to sign in'}`);
-            return;
-          }
-
           if (data.message === 'Login successful') {
-            console.log('Login successful, storing token...');
             if (data.token) {
               localStorage.setItem('token', data.token);
-              console.log('Token stored successfully');
             }
             window.location.href = 'index.html';
           } else {
-            console.log('Login failed:', data.message);
             alert(data.message || 'Login failed. Please try again.');
           }
         } catch (error) {
-          console.error('Detailed error information:', {
+          console.error('Error details:', {
             name: error.name,
             message: error.message,
-            stack: error.stack,
-            type: error.constructor.name
+            stack: error.stack
           });
-          
-          // Check specific error types
-          if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-            console.error('Network error detected');
-            alert('Network error: Cannot connect to the server. Please check if the backend is running.');
-          } else if (error.name === 'SyntaxError') {
-            console.error('JSON parsing error');
-            alert('Error: Invalid response from server');
-          } else {
-            console.error('Unknown error type');
-            alert('Error during signin. Please check console for details.');
-          }
+
+          // Try to ping the server to check if it's running
+          fetch('https://swappro-backend.onrender.com')
+            .then(res => console.log('Server is up:', res.status))
+            .catch(err => console.log('Server is down:', err));
         }
       });
     </script>
